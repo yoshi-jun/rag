@@ -26,31 +26,51 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # =============================================================================
 
-import langchain
-
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
-# from langchain_ollama import ChatOllama   #conda に対応していないため見送り
-from langchain_community.chat_models import ChatOllama #上記の代わり
+# from langchain_ollama import ChatOllama   # not supported conda
+from langchain_community.chat_models import ChatOllama # installable by conda
 
 from langchain.document_loaders import TextLoader
+from langchain_community.document_loaders import JSONLoader
 from langchain.schema import SystemMessage, HumanMessage
 from langchain_core.prompts import PromptTemplate
+
+import json
+from pathlib import Path
+from pprint import pprint
 
 #==============================================================================
 def GetLlmModel(mode):
     # Get llm models 
     if mode.lower() == "gpt-4o-mini":
         llm = ChatOpenAI(model="gpt-4o-mini", streaming=True)
+
     elif mode.lower() == "gemini-1.5-pro" or mode is None:
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0.7, streaming=True)
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", 
+                                     temperature=0.7, streaming=True)
+    
     elif mode.lower() == "llama3":
         llm = ChatOllama(model = "llama4",streaming=True)
+    
     else:
         llm = None
+    
     return llm
 
 #------------------------------------------------------------------------------
-def SerchContext(direc, context):
+def LoadJSON(f_name):
     # transform context to vector
-    context
+
+    data = json.loads(f_name)
+
+    return data
+
+
+###############################################################################
+def main():
+    doc = LoadJSON("subtitle.json")
+    pprint(doc)
+
+if __name__=="__main__":
+    main()
