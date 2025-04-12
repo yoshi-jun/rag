@@ -31,8 +31,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 # from langchain_ollama import ChatOllama   # not supported conda
 from langchain_community.chat_models import ChatOllama # installable by conda
 
-from langchain.document_loaders import TextLoader
-from langchain_community.document_loaders import JSONLoader
+from langchain_community.document_loaders import TextLoader
+# from langchain_community.document_loaders import JSONLoader
 from langchain.schema import SystemMessage, HumanMessage
 from langchain_core.prompts import PromptTemplate
 
@@ -60,16 +60,14 @@ def GetLlmModel(mode):
 
 #------------------------------------------------------------------------------
 def LoadJSON(f_name):
-    # transform context to vector
-
-    data = json.loads(f_name)
+    with open(f_name, 'r', encoding='utf-8') as f:
+        data = json.load(f)
 
     return data
 
-
 ###############################################################################
 def main():
-    doc = LoadJSON("subtitle.json")
+    doc = LoadJSON("subject/subtitle.json")
     pprint(doc)
 
 if __name__=="__main__":
