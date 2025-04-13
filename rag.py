@@ -28,11 +28,14 @@
 
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
-# from langchain_ollama import ChatOllama   # not supported conda
-from langchain_community.chat_models import ChatOllama # installable by conda
 
-from langchain_community.document_loaders import TextLoader
-# from langchain_community.document_loaders import JSONLoader
+# not supported conda
+from langchain_ollama import ChatOllama, OllamaEmbeddings
+
+# installable by conda
+# from langchain_community.chat_models import ChatOllama 
+# from langchain_community.embeddings import OllamaEmbeddings
+
 from langchain.schema import SystemMessage, HumanMessage
 from langchain_core.prompts import PromptTemplate
 
@@ -42,20 +45,7 @@ from pprint import pprint
 
 #==============================================================================
 def GetLlmModel(mode):
-    # Get llm models 
-    if mode.lower() == "gpt-4o-mini":
-        llm = ChatOpenAI(model="gpt-4o-mini", streaming=True)
-
-    elif mode.lower() == "gemini-1.5-pro" or mode is None:
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", 
-                                     temperature=0.7, streaming=True)
-    
-    elif mode.lower() == "llama3":
-        llm = ChatOllama(model = "llama4",streaming=True)
-    
-    else:
-        llm = None
-    
+    llm = ChatOllama(model = "llama3", streaming=True)
     return llm
 
 #------------------------------------------------------------------------------
@@ -65,10 +55,23 @@ def LoadJSON(f_name):
 
     return data
 
+#------------------------------------------------------------------------------
+def Embedding(doc):
+    embeded = OllamaEmbeddings(model="llama3.1")
+
+    vec = embeded.embed_query(doc)
+
+    return vec
 ###############################################################################
 def main():
+    # load to json file
     doc = LoadJSON("subject/subtitle.json")
-    pprint(doc)
+    
+    # transfrom text to vec
+    print(doc.values())
+    
+
+    # print(vec)
 
 if __name__=="__main__":
     main()
