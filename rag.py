@@ -26,52 +26,82 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # =============================================================================
 
+##### For each LLMs lib ####
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
-
 # not supported conda
-from langchain_ollama import ChatOllama, OllamaEmbeddings
-
+from langchain_ollama import ChatOllama
 # installable by conda
 # from langchain_community.chat_models import ChatOllama 
 # from langchain_community.embeddings import OllamaEmbeddings
 
-from langchain.schema import SystemMessage, HumanMessage
-from langchain_core.prompts import PromptTemplate
-
+#### for loading PDF Table ####
+from llama_index.readers.pdf_table import PDFTableReader
+#### For load json files ####
 import json
 from pathlib import Path
 from pprint import pprint
 
+### fro embedding text and store it ####
+from langchain_ollama import OllamaEmbeddings
+from langchain_core.vectorstores import InMemoryVectorStore
+
+#### For Make Prompt ####
+from langchain.schema import SystemMessage, HumanMessage
+from langchain_core.prompts import PromptTemplate
+
 #==============================================================================
-def GetLlmModel(mode):
-    llm = ChatOllama(model = "llama3", streaming=True)
+def GetLlmModel(model="llama3.1"):
+    llm = ChatOllama(model=model, streaming=True)
     return llm
 
 #------------------------------------------------------------------------------
-def LoadJSON(f_name):
-    with open(f_name, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+def LoadPDFTable(f_name):
+    reader = PDFTableReader()
+    documents = reader.load_data(file=f_name)
 
-    return data
+    return documents
 
 #------------------------------------------------------------------------------
-def Embedding(doc):
-    embeded = OllamaEmbeddings(model="llama3.1")
+def Embedding(docs, model="llama3.1"):
 
-    vec = embeded.embed_query(doc)
+    embededings = OllamaEmbeddings(model=model)
 
-    return vec
+    for doc in docs:
+        vecs = InMemoryVectorStore.from_texts(
+            [doc.text],
+            embedding=embededings
+        )
+
+    return vecs
+
+#------------------------------------------------------------------------------
+def MakeMessage(mes):
+    hmes = HumanMessage(content=mes)
+
+    return hmes
+
 ###############################################################################
 def main():
-    # load to json file
-    doc = LoadJSON("subject/subtitle.json")
+    # load to PDFTable
+    f_name = "subject/youkou_ver5_0-33-38.pdf"
+    docs = LoadPDFTable(f_name)
     
-    # transfrom text to vec
-    print(doc.values())
-    
+    # Embedding the text
+    vecs = Embedding(docs)
 
-    # print(vec)
+    # Define the llm
+    llm = GetLlmModel()
+
+    while True:
+        mes = input("基本情報技術者試験の出題範囲について答えます。\n")
+
+        hmes = MakeMessage(mes)
+        smes = SystemMessage(content="")
+
+        for chunk in llm.stream([smes, hmes]):
+            if chunk.content:
+                print(chunk.content, end="", flush=True)        
 
 if __name__=="__main__":
     main()
