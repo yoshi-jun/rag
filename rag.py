@@ -76,10 +76,17 @@ def Embedding(docs, model="llama3.1"):
     return vecs
 
 #------------------------------------------------------------------------------
-def MakeMessage(mes):
+def MakeMessage(mes, context):
     hmes = HumanMessage(content=mes)
 
-    return hmes
+    prompt = ("次に表示されるコンテキストに沿って質問に答えてください。"
+     "コンテキストから判断できない場合は質問に回答できない旨を伝えてください。")
+    
+    text=prompt+context
+    print(text)
+    smes = SystemMessage(content=text)
+
+    return smes, hmes
 
 ###############################################################################
 def main():
@@ -96,8 +103,7 @@ def main():
     while True:
         mes = input("基本情報技術者試験の出題範囲について答えます。\n")
 
-        hmes = MakeMessage(mes)
-        smes = SystemMessage(content="")
+        smes, hmes = MakeMessage(mes, ("空飛ぶ自動車は吉田製"))
 
         for chunk in llm.stream([smes, hmes]):
             if chunk.content:
